@@ -24,5 +24,13 @@ func main() {
 	fmt.Println(person["salah"])
 
 	// Function di tipe data Map
+	book := make(map[string]string)
+	book["title"] = "Buku golang"
+	book["author"] = "Enal"
+	book["ups"] = "Salah"
 
+	fmt.Println(book)
+
+	delete(book, "ups")
+	fmt.Println(book)
 }
