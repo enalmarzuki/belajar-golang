@@ -4,3 +4,9 @@ CREATE TABLE category (
 )  ENGINE=INNODB;
 
 SELECT * FROM category;
+
+TRUNCATE category;
+
+use belajar_golang_restful_api_test;
+
+use belajar_golang_restful_api_test;
