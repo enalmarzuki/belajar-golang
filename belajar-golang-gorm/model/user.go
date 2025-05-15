@@ -18,13 +18,15 @@ import "time"
   - -  : ignore field ini, tidak ada read/write permission
 */
 type User struct {
-	ID          string    `gorm:"primary_key;column:id;<-:create"`
-	Password    string    `gorm:"column:password"`
-	Name        Name      `gorm:"embedded"`
-	CreatedAt   time.Time `gorm:"column:created_at;autoCreateTime:<-:create"`
-	UpdatedAt   time.Time `gorm:"column:updated_at;autoCreateTime;autoUpdateTime"`
-	Information string    `gorm:"-"`
-	Wallet      Wallet    `gorm:"foreignKey:user_id;references:id"` // -> relasi one to one (hasOne)
+	ID           string    `gorm:"primary_key;column:id;<-:create"`
+	Password     string    `gorm:"column:password"`
+	Name         Name      `gorm:"embedded"`
+	CreatedAt    time.Time `gorm:"column:created_at;autoCreateTime:<-:create"`
+	UpdatedAt    time.Time `gorm:"column:updated_at;autoCreateTime;autoUpdateTime"`
+	Information  string    `gorm:"-"`
+	Wallet       Wallet    `gorm:"foreignKey:user_id;references:id"`                                                                         // -> relasi one to one (hasOne)
+	Addresses    []Address `gorm:"foreignKey:user_id;references:id"`                                                                         // -> relasi one to many (hasMany)
+	LikeProducts []Product `gorm:"many2many:user_like_product;foreignKey:id;joinForeignKey:user_id;references:id;joinReferences:product_id"` // -> relasi many to many (hasMany)
 }
 
 // method dibawah ini dipakai klo kita mau menggunakan nama table nya secara manaual, maka harus menggunakan method TableName
@@ -37,3 +39,14 @@ type Name struct {
 	MiddleName string `gorm:"column:middle_name"`
 	LastName   string `gorm:"column:last_name"`
 }
+
+/*
+
+Relasi					|		Tag yang digunakan		|		Menunjuk ke
+One-to-Many			|		foreignKey						|		field di struct anak (ex: Address)
+								| 	references						|		field di struct induk (ex: User)
+Many-to-Many		|		foreignKey						|		field di struct ini (ex: User)
+								|		joinForeignKey				|		kolom di tabel pivot
+								|		references						|		field di struct tujuan (ex: Product)
+								|		joinReferences				|		kolom di tabel pivot
+*/
