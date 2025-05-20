@@ -1,9 +1,11 @@
 package belajar_golang_gorm
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"belajar-golang-gorm/model"
 
@@ -40,6 +42,16 @@ func OpenConnection() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil
+	}
+
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
+	sqlDB.SetConnMaxIdleTime(5 * time.Minute)
 
 	return db
 }
@@ -872,4 +884,52 @@ func TestAggregationGroupByAndHaving(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, 4, len(result))
+}
+
+func TestContext(t *testing.T) {
+	ctx := context.Background()
+
+	var users []model.User
+	err := db.WithContext(ctx).Find(&users).Error
+	assert.Nil(t, err)
+	assert.Equal(t, 17, len(users))
+}
+
+func BrokeWalletBalance(db *gorm.DB) *gorm.DB {
+	return db.Where("balance = ?", 0)
+}
+
+func SultanWalletBalance(db *gorm.DB) *gorm.DB {
+	return db.Where("balance > ?", 1000000)
+}
+
+func TestScopes(t *testing.T) {
+	var wallets []model.Wallet
+	err := db.Scopes(BrokeWalletBalance).Find(&wallets).Error
+	assert.Nil(t, err)
+
+	wallets = []model.Wallet{}
+	err = db.Scopes(SultanWalletBalance).Find(&wallets).Error
+	assert.Nil(t, err)
+}
+
+func TestMigrator(t *testing.T) {
+	// tidak disarankan pakai ini untuk real case
+	err := db.Migrator().AutoMigrate(&model.GuestBook{})
+	assert.Nil(t, err)
+}
+
+func TestHook(t *testing.T) {
+	user := model.User{
+		Password: "rahasia",
+		Name: model.Name{
+			FirstName: "User 100",
+		},
+	}
+
+	err := db.Create(&user).Error
+	assert.Nil(t, err)
+	assert.NotEqual(t, "", user.ID)
+
+	fmt.Println(user.ID)
 }
